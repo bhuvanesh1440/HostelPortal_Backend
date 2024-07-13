@@ -1,0 +1,195 @@
+const Request = require('../models/Requests');
+const Hosteler = require('../models/Hostelers');
+const sendSMS = require('../utils/sms');
+const formatDate = require('../utils/formatDate');
+const dotenv = require('dotenv');
+dotenv.config();
+
+const OUTGOING_TEMPLATE_ID = process.env.OUTGOING_TEMPLATE_ID;
+const RETURN_TEMPLATE_ID = process.env.RETURN_TEMPLATE_ID;
+
+// Create a request
+exports.createRequest = async (req, res) => {
+    try {
+        const { name, rollno, hostelid, requestType, startDate, endDate, fromTime, toTime, reason } = req.body;
+
+        const hosteler = await Hosteler.findOne({ RollNo: rollno });
+        if (!hosteler) {
+            return res.status(404).send('Hosteler not found');
+        }
+
+        const newRequest = new Request({
+            name,
+            rollno,
+            hostelid,
+            requestType,
+            startDate,
+            endDate,
+            fromTime,
+            toTime,
+            reason,
+            approved: false,
+            returned: false
+        });
+
+        await newRequest.save();
+        res.status(201).json(newRequest);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get all requests
+exports.getAllRequests = async (req, res) => {
+    try {
+        const requests = await Request.find().sort({ createdAt: -1 });
+        res.status(200).json(requests);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get a single request by ID
+exports.getRequestById = async (req, res) => {
+    try {
+        const request = await Request.findById(req.params.id);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+        res.status(200).json(request);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Update a request by ID
+exports.updateRequestById = async (req, res) => {
+    try {
+        const request = await Request.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+        res.status(200).json(request);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// Delete a request by ID
+exports.deleteRequestById = async (req, res) => {
+    try {
+        const request = await Request.findByIdAndDelete(req.params.id);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+        res.status(200).json({ message: 'Request deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Approve a request
+exports.approveRequest = async (req, res) => {
+    const { id } = req.params;
+    const { acceptedBy } = req.body;
+
+    try {
+        const request = await Request.findById(id);
+        if (!request) {
+            return res.status(404).send('Request not found');
+        }
+
+        request.approved = true;
+        request.approval_time = new Date();
+        request.acceptedBy = acceptedBy;
+        await request.save();
+
+        const hosteler = await Hosteler.findOne({ RollNo: request.rollno });
+        if (hosteler) {
+            const phoneNumber = hosteler.FatherMobileNumber;
+            const messageTemplate = 'Dear Parent, your ward, {#var1#}, has applied for outing from {#var2#} to {#var3#}. Student went out at {#var4#}. NEC Hostels GEDNEC';
+            const variables = [hosteler.FirstName, request.startDate+' '+request.fromTime, request.endDate+' '+request.toTime, formatDate(request.approval_time).toString()];
+
+            await sendSMS(phoneNumber, OUTGOING_TEMPLATE_ID, messageTemplate, variables);
+            res.status(200).send('Request approved and parent notified');
+        } else {
+            res.status(404).send('Hosteler not found');
+        }
+    } catch (error) {
+        console.error('Error approving request:', error);
+        res.status(500).send('Server error');
+    }
+};
+
+// Get all not approved requests
+exports.getNotApprovedRequests = async (req, res) => {
+    try {
+        const requests = await Request.find({ approved: false }).sort({ createdAt: -1 });
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error('Error fetching not approved requests:', error);
+        res.status(500).send('Server error');
+    }
+};
+
+
+// Get all approved but not returned requests
+exports.getNotReturnedRequests = async (req, res) => {
+    try {
+        const requests = await Request.find({ approved: true, returned: false }).sort({ createdAt: -1 });
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error('Error fetching not returned requests:', error);
+        res.status(500).send('Server error');
+    }
+};
+
+
+const send_return = require("../utils/send_return ")
+// Mark request as returned
+exports.markRequestAsReturned = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        console.log(`Received request to mark as returned with id: ${id}`);
+        const request = await Request.findById(id);
+        if (!request) {
+            console.log('Request not found');
+            return res.status(404).send('Request not found');
+        }
+
+        // Current return time
+        const returnTime = new Date();
+
+        // Combine endDate and toTime to create a complete end datetime
+        const endDateTime = new Date(request.endDate);
+        const [endHours, endMinutes] = request.toTime.split(':').map(Number);
+        endDateTime.setHours(endHours);
+        endDateTime.setMinutes(endMinutes);
+
+        // Check if the returned time is greater than endDateTime
+        request.delay = returnTime > endDateTime;
+
+        request.returned = true;
+        request.return_time = returnTime;
+        await request.save();
+        console.log('Request marked as returned');
+
+        const hosteler = await Hosteler.findOne({ RollNo: request.rollno });
+        if (hosteler) {
+            console.log('Hosteler found, sending notification');
+            const phoneNumber = hosteler.FatherMobileNumber;
+            const messageTemplate = 'Dear Parent, your ward {#var1#} has returned to the campus from outing at {#var2#}. NEC Hostels GEDNEC';
+            const variables = [hosteler.FirstName, formatDate(returnTime).toString()];
+
+            await send_return(phoneNumber, messageTemplate, variables);
+            res.status(200).send('Request marked as returned and parent notified');
+        } else {
+            console.log('Hosteler not found');
+            res.status(404).send('Hosteler not found');
+        }
+    } catch (error) {
+        console.error('Error marking request as returned:', error);
+        res.status(500).send('Server error');
+    }
+};
