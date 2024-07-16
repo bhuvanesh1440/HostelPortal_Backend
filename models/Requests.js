@@ -14,8 +14,8 @@ const requestsSchema = new mongoose.Schema({
     approved: { type: Boolean, default: false },
     returned: { type: Boolean, default: false },
     approval_time: Date,
-    returnDate: Date,
-    return_time: String,
+    // returnDate: Date,
+    return_time: String, //change to date
     acceptedBy: String,
     delay: { type: Boolean, default: false },
 }, { timestamps: true });

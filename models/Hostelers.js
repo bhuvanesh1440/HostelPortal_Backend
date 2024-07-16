@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 const hostelersSchema = new mongoose.Schema({
-    RollNo: { type: String},//, required: true, unique: true },
+    RollNo: { type: String, required: true, unique: true },
     hostelid: String,
     FirstName: String,
     LastName: String,
