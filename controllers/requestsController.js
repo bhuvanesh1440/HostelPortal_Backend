@@ -189,7 +189,7 @@ exports.getPendingRequestsByHostelId = async (req, res) => {
         res.status(200).json(pendingRequests);
     } catch (error) {
         console.error("Error fetching pending requests:", error);
-        res.status(500).json({ message: "Server error. Please try again later." });
+        res.json({ message: "Server error. Please try again later." });
     }
 };
 
@@ -229,7 +229,7 @@ exports.approveRequest = async (req, res) => {
         // }
     } catch (error) {
         console.error('Error approving request:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.json({ message: 'Server error' });
     }
     res.status(200).json({updates:true,message:"notified to parent"})
 };
@@ -243,12 +243,15 @@ exports.acceptedRequestsByhostelId = async (req, res) => {
        const requests = await Request.find({ hostelId: req.params.hostelId, status: 'ACCEPTED', isActive: true }).sort({ createdAt: -1 });
      
         res.status(200).json(requests);
+        
     } catch (error) {
         console.error('Error fetching not returned requests:', error);
-        res.status(500).send('Server error');
+        res.send('Server error');
     }
 };
 
+
+// Mark request as arrived
 exports.arriveRequest = async (req,res)=>{
     
     console.log(req.params.Id)
@@ -261,9 +264,23 @@ exports.arriveRequest = async (req,res)=>{
             { new: true } 
         );
         console.log(updatedRequest)
+
+        // const hosteler = await Hosteler.findOne({ rollNo: updatedRequest.rollno });
+        // if (hosteler) {
+        //     console.log('Hosteler found, sending notification');
+        //     const phoneNumber = hosteler.FatherMobileNumber;
+        //     const messageTemplate = 'Dear Parent, your ward {#var1#} has returned to the campus from outing at {#var2#}. NEC Hostels GEDNEC';
+        //     const variables = [hosteler.FirstName, formatDate(returnTime).toString()];
+
+        //     await send_return(phoneNumber, messageTemplate, variables);
+        //     res.status(200).send('Request marked as returned and parent notified');
+        // } else {
+        //     console.log('Hosteler not found');
+        //     res.status(404).send('Hosteler not found');
+        // }
     } catch (error) {
         console.error('Error approving request:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.json({ message: 'Server error' });
     }
     res.status(200).json({updated:true,message:"notified to parent"})
 
