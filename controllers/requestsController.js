@@ -183,7 +183,7 @@ exports.getPendingRequestsByHostelId = async (req, res) => {
         });
         console.log(pendingRequests)
         if (pendingRequests.length === 0) {
-            return res.status(404).json({ message: 'No pending requests found for this hostel ID.' });
+            return res.json({ message: 'No pending requests found for this hostel ID.' });
         }
 
         res.status(200).json(pendingRequests);
