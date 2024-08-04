@@ -4,8 +4,6 @@ const bodyParser = require("body-parser")
 const connectDB = require('./config/db');
 
 // Import routes
-const studentRoutes = require('./routes/studentRoutes');
-const managementRoutes = require('./routes/managementRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const hostelerRoutes = require('./routes/hostelerRoutes');
@@ -25,13 +23,12 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:false}))
 
 // Routes
-app.use('/api/students', studentRoutes);
-app.use('/api/management', managementRoutes);
-app.use('/api', uploadRoutes);
-app.use('/api/admins', adminRoutes);
-app.use('/api/hostelers', hostelerRoutes);
-app.use('/api/hostler-credentials', hostlerCredentialsRoutes); 
-app.use('/api/requests', requestsRoutes);
+
+app.use('/ipload', uploadRoutes);
+app.use('/admins', adminRoutes);
+app.use('/student', hostelerRoutes);
+app.use('/hostler-login', hostlerCredentialsRoutes); 
+app.use('/requests', requestsRoutes);
 
 app.get("/",(req,res)=>{
     res.send("hello world")
@@ -39,8 +36,8 @@ app.get("/",(req,res)=>{
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
 
  const shutdown = async (signal)=>{
     console.log("closing.....")

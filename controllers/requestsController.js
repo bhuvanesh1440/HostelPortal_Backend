@@ -11,29 +11,19 @@ const RETURN_TEMPLATE_ID = process.env.RETURN_TEMPLATE_ID;
 // Create a request
 exports.createRequest = async (req, res) => {
     try {
-        const { name, rollno, hostelid, requestType, startDate, endDate, fromTime, toTime, reason } = req.body;
+        // const { name, rollno, hostelid, requestType, startDate, endDate, fromTime, toTime, reason } = req.body;
 
-        const hosteler = await Hosteler.findOne({ RollNo: rollno });
-        if (!hosteler) {
-            return res.status(404).send('Hosteler not found');
-        }
+        // const hosteler = await Hosteler.findOne({ RollNo: rollno });
+        // if (!hosteler) {
+        //     return res.status(404).send('Hosteler not found');
+        // }
 
-        const newRequest = new Request({
-            name,
-            rollno,
-            hostelid,
-            requestType,
-            startDate,
-            endDate,
-            fromTime,
-            toTime,
-            reason,
-            approved: false,
-            returned: false
-        });
+        const newRequest = new Request(req.body);
+        console.log("in controller")
+        console.log(req.body)
 
         await newRequest.save();
-        res.status(201).json(newRequest);
+        res.status(201).json({success:"true"});
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -48,6 +38,20 @@ exports.getAllRequests = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.getAllRequestsByRollNumber = async(req,res) =>{
+    try{
+        
+        const rollno = req.params.RollNo;
+        console.log(rollno)
+        const requests = await Request.find({rollNo:rollno}).sort({ createdAt: -1});
+        console.log(requests);
+        res.status(200).json(requests);
+    }
+    catch(err){
+        res.status(500).json({message:err.message});
+    }
+}
 
 // Get a single request by ID
 exports.getRequestById = async (req, res) => {

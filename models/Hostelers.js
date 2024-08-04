@@ -2,19 +2,24 @@
 const mongoose = require('mongoose');
 
 const hostelersSchema = new mongoose.Schema({
-    RollNo: { type: String, required: true, unique: true },
-    hostelid: String,
-    FirstName: String,
-    LastName: String,
-    Semester:String,
-    Gender:String,
-    Department:String,
-    PhoneNo: String,
-    FatherName: String,
-    FatherMobileNumber: String,
-    DOB: Date,
-    Email: String,
+   hostelId: String,
+   rollNo: { type: String, required: true, unique: true },
+   name: String,
+   college:String,
+   year:Number,
+   branch:String,
+   gender:String,
+   // dob: Date,
+   dob:{ type: Date, default:new Date("02-07-2004")},
+   phoneNo: { type: String, required: true },
+   email: String,
+   parentName: String,
+   parentPhoneNo: { type: String, required: true },
+   currentStatus:{type:String,default:"HOSTEL"} , // enum:[“hostel”,”permission”,”leave”],
+   requestCount:{type:Number,default:0},
+   lastRequest:{}
     
 }, { timestamps: true });
+
 
 module.exports = mongoose.model('Hosteler', hostelersSchema);

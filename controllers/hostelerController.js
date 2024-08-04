@@ -27,9 +27,12 @@ exports.getAllHostelers = async (req, res) => {
 // Get a single hosteler by RollNo
 exports.getHostelerByRollNo = async (req, res) => {
     try {
-        const hosteler = await Hosteler.findOne({ RollNo: req.params.RollNo });
+        console.log(req.params.rollNo )
+        const hosteler = await Hosteler.findOne({ rollNo: req.params.RollNo });
+        console.log(hosteler)
+        
         if (!hosteler) {
-            return res.status(404).json({ message: 'Hosteler not found' });
+            return res.json({ message: 'Hosteler not found' });
         }
         res.status(200).json(hosteler);
     } catch (error) {
@@ -39,11 +42,11 @@ exports.getHostelerByRollNo = async (req, res) => {
 // Update a hosteler by RollNo
 exports.updateHostelerByRollNo = async (req, res) => {
     try {
-        const hosteler = await Hosteler.findOneAndUpdate({ RollNo: req.params.RollNo }, req.body, { new: true });
+        const hosteler = await Hosteler.findOneAndUpdate({ rollNo: req.params.RollNo }, req.body, { new: true });
         if (!hosteler) {
             return res.status(404).json({ message: 'Hosteler not found' });
         }
-        res.status(200).json(hosteler);
+        res.status(200).json({updated:true});
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

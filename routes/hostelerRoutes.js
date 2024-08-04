@@ -6,7 +6,7 @@ const hostelerController = require('../controllers/hostelerController');
 router.post('/', hostelerController.createHosteler);
 router.get('/', hostelerController.getAllHostelers);
 router.get('/:RollNo', hostelerController.getHostelerByRollNo);
-router.put('/:RollNo', hostelerController.updateHostelerByRollNo);
+router.put('/update/:RollNo', hostelerController.updateHostelerByRollNo);
 router.delete('/:RollNo', hostelerController.deleteHostelerByRollNo);
 
 module.exports = router;

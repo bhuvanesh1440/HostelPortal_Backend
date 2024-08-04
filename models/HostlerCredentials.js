@@ -1,24 +1,25 @@
 // models/HostlerCredentials.js
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const hostlerCredentialsSchema = new mongoose.Schema({
-    RollNumber: { type: String, required: true },
-    password: { type: String, required: true },
-    phoneNumber: { type: String, required: true },
-    email: { type: String, required: true },
-}, { timestamps: true });
-
-// Add a pre-save hook to validate if RollNumber exists in Hosteler schema
-hostlerCredentialsSchema.pre('save', async function(next) {
-    try {
-        const existingHosteler = await mongoose.model('Hosteler').findOne({ RollNo: this.RollNumber });
-        if (!existingHosteler) {
-            throw new Error(`Hosteler with RollNumber ${this.RollNumber} does not exist.`);
+    RollNumber: { type: String, required: true, unique: true },
+    password: {
+        type: String,
+        required: true,
+        validate: {
+            validator: function (value) {
+                return validator.isStrongPassword(value, {
+                    minLength: 8,
+                    minLowercase: 1,
+                    minUppercase: 1,
+                    minNumbers: 1,
+                    minSymbols: 1
+                });
+            },
+            message: props => `${props.value} is not a strong password`
         }
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
+    },
+}, { timestamps: true });
 
 module.exports = mongoose.model('HostlerCredentials', hostlerCredentialsSchema);
