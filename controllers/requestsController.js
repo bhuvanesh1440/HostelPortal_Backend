@@ -201,8 +201,8 @@ exports.approveRequest = async (req, res) => {
     console.log(req.body)
     try {
         // Find the request by ID
-        const updatedRequest = await Request.findByIdAndUpdate(
-            req.params.Id, 
+        const updatedRequest = await Request.findOneAndUpdate(
+            {id:req.params.Id}, 
             req.body, 
             { new: true } 
         );
