@@ -16,7 +16,7 @@ exports.createIncharge = async (req, res) => {
         await newIncharge.save();
         res.status(201).json(newIncharge);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 
@@ -26,7 +26,7 @@ exports.getAllIncharges = async (req, res) => {
         const incharges = await Incharge.find();
         res.status(200).json(incharges);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 
@@ -39,7 +39,7 @@ exports.getInchargeByEid = async (req, res) => {
         }
         res.status(200).json(incharge);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 
@@ -61,7 +61,7 @@ exports.updateInchargeByEid = async (req, res) => {
 
         res.status(200).json(updatedIncharge);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 
@@ -78,6 +78,6 @@ exports.deleteInchargeByEid = async (req, res) => {
 
         res.status(200).json({ message: `Incharge with eid ${eid} deleted successfully.` });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };

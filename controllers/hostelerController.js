@@ -8,7 +8,7 @@ exports.createHosteler = async (req, res) => {
         await hosteler.save();
         res.status(201).json(hosteler);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 
@@ -20,7 +20,7 @@ exports.getAllHostelers = async (req, res) => {
         const hostelers = await Hosteler.find();
         res.status(200).json(hostelers);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 
@@ -36,7 +36,7 @@ exports.getHostelerByRollNo = async (req, res) => {
         }
         res.status(200).json(hosteler);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 
@@ -63,7 +63,7 @@ exports.getFilteredHostlers = async (req, res) => {
         res.status(200).json(hostlers);
     } catch (error) {
         console.error("Error fetching filtered hostlers:", error);
-        res.status(500).json({ message: "Server error. Please try again later." });
+        res.json({ message: "Server error. Please try again later." });
     }
 };
 // Update a hosteler by RollNo
@@ -75,7 +75,7 @@ exports.updateHostelerByRollNo = async (req, res) => {
         }
         res.status(200).json({updated:true});
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
 // Delete a hosteler by RollNo
@@ -87,6 +87,6 @@ exports.deleteHostelerByRollNo = async (req, res) => {
         }
         res.status(200).json({ message: 'Hosteler deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.json({ message: error.message });
     }
 };
