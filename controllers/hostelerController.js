@@ -39,6 +39,33 @@ exports.getHostelerByRollNo = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
+// Get hostlers by filter criteria
+exports.getFilteredHostlers = async (req, res) => {
+    try {
+        const { hostelId, college, year, branch } = req.body;
+
+        // Create an object to store the filter criteria
+        let filter = {};
+
+        // Add criteria to the filter object if they are provided
+        if (hostelId && hostelId.toUpperCase() !== "ALL") filter.hostelId = hostelId;
+        if (college && college.toUpperCase() !== "ALL") filter.college = college;
+        if (year && year.toUpperCase() !== "ALL") filter.year = parseInt(year); 
+        if (branch && branch.toUpperCase() !== "ALL") filter.branch = branch;
+        console.log(filter)
+
+        // Query the database with the filter criteria
+        const hostlers = await Hosteler.find(filter);
+
+        // Return the results
+        res.status(200).json(hostlers);
+    } catch (error) {
+        console.error("Error fetching filtered hostlers:", error);
+        res.status(500).json({ message: "Server error. Please try again later." });
+    }
+};
 // Update a hosteler by RollNo
 exports.updateHostelerByRollNo = async (req, res) => {
     try {
