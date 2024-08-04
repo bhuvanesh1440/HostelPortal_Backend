@@ -233,3 +233,18 @@ exports.approveRequest = async (req, res) => {
     }
     res.status(200).json({updates:true,message:"notified to parent"})
 };
+
+
+// Get all approved requests that have not been returned, filtered by hostelid
+exports.acceptedRequestsByhostelId = async (req, res) => {
+    console.log( req.params.hostelId)
+
+    try {
+       const requests = await Request.find({ hostelId: req.params.hostelId, status: 'ACCEPTED', isActive: true }).sort({ createdAt: -1 });
+     
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error('Error fetching not returned requests:', error);
+        res.status(500).send('Server error');
+    }
+};

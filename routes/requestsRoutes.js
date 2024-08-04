@@ -6,6 +6,7 @@ router.post('/', requestsController.createRequest);
 router.get('/', requestsController.getAllRequests);
 router.get('/pending/:hostelId', requestsController.getPendingRequestsByHostelId);
 router.post('/approve/:Id', requestsController.approveRequest);
+router.get('/activeRequest/:hostelId',requestsController.acceptedRequestsByhostelId)
 
 
 
