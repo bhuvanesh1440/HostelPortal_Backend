@@ -4,6 +4,9 @@ const requestsController = require('../controllers/requestsController');
 
 router.post('/', requestsController.createRequest);
 router.get('/', requestsController.getAllRequests);
+router.get('/pending/:hostelId', requestsController.getPendingRequestsByHostelId);
+
+
 
 router.get('/:RollNo',requestsController.getAllRequestsByRollNumber)
 

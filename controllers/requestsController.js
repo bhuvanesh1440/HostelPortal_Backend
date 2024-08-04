@@ -197,3 +197,29 @@ exports.markRequestAsReturned = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
+
+// all recent routes
+
+// Get all pending requests by hostelId
+exports.getPendingRequestsByHostelId = async (req, res) => {
+    try {
+        const { hostelId } = req.params;
+        console.log(hostelId)
+        // Fetch all requests with status 'submitted' for the given hostelId
+        const pendingRequests = await Request.find({
+            hostelId: hostelId,
+            status: 'SUBMITTED',
+            isActive: true 
+        });
+        console.log(pendingRequests)
+        if (pendingRequests.length === 0) {
+            return res.status(404).json({ message: 'No pending requests found for this hostel ID.' });
+        }
+
+        res.status(200).json(pendingRequests);
+    } catch (error) {
+        console.error("Error fetching pending requests:", error);
+        res.status(500).json({ message: "Server error. Please try again later." });
+    }
+};
