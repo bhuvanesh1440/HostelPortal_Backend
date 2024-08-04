@@ -7,7 +7,7 @@ const connectDB = require('./config/db');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const hostelerRoutes = require('./routes/hostelerRoutes');
-const hostlerCredentialsRoutes = require('./routes/hostlerCredentialsRoutes'); 
+// const hostlerCredentialsRoutes = require('./routes/hostlerCredentialsRoutes'); 
 const requestsRoutes = require('./routes/requestsRoutes');
 const { default: mongoose } = require('mongoose');
 
@@ -27,7 +27,7 @@ app.use(bodyParser.urlencoded({extended:false}))
 app.use('/ipload', uploadRoutes);
 app.use('/admins', adminRoutes);
 app.use('/student', hostelerRoutes);
-app.use('/hostler-login', hostlerCredentialsRoutes); 
+// app.use('/hostler-login', hostlerCredentialsRoutes); 
 app.use('/requests', requestsRoutes);
 
 app.get("/",(req,res)=>{
