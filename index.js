@@ -31,7 +31,7 @@ app.use('/admins', adminRoutes);
 app.use('/student', hostelerRoutes);
 // app.use('/hostler-login', hostlerCredentialsRoutes); 
 app.use('/requests', requestsRoutes);
-app.use('/api', inchargeRoutes); 
+app.use('/incharge', inchargeRoutes); 
 
 app.get("/",(req,res)=>{
     res.send("hello world")
