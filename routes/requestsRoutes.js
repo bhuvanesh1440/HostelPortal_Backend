@@ -8,6 +8,7 @@ router.get('/pending/:hostelId', requestsController.getPendingRequestsByHostelId
 router.post('/approve/:Id', requestsController.approveRequest);
 router.get('/activeRequest/:hostelId',requestsController.acceptedRequestsByhostelId)
 router.post('/arrive/:Id', requestsController.arriveRequest);
+router.post('/getArrivedRequests',requestsController.getArrivedRequestsBetweenDates)
 
 
 

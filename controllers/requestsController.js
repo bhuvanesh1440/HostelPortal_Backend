@@ -285,3 +285,38 @@ exports.arriveRequest = async (req,res)=>{
     res.status(200).json({updated:true,message:"notified to parent"})
 
 }
+
+
+// Get all arrived requests between two dates
+exports.getArrivedRequestsBetweenDates = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.body;
+
+        // Ensure dates are provided and valid
+        if (!startDate || !endDate) {
+            return res.json({ message: 'Start date and end date are required' });
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        console.log(startDate)
+        console.log(endDate)
+
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return res.json({ message: 'Invalid date format' });
+        }
+
+        // Find all requests where 'arrived.time' is between startDate and endDate
+        const requests = await Request.find({
+            arrived: { $ne: null }, // Ensure 'arrived' is not null
+            'arrived.time': { $gte: start, $lte: end },
+            
+        }).sort({ 'arrived.time': -1 });
+
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error('Error fetching arrived requests:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
