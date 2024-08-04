@@ -9,6 +9,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const hostelerRoutes = require('./routes/hostelerRoutes');
 // const hostlerCredentialsRoutes = require('./routes/hostlerCredentialsRoutes'); 
 const requestsRoutes = require('./routes/requestsRoutes');
+const inchargeRoutes = require('./routes/inchargeRoutes')
+
 const { default: mongoose } = require('mongoose');
 
 const app = express();
@@ -29,6 +31,7 @@ app.use('/admins', adminRoutes);
 app.use('/student', hostelerRoutes);
 // app.use('/hostler-login', hostlerCredentialsRoutes); 
 app.use('/requests', requestsRoutes);
+app.use('/api', inchargeRoutes); 
 
 app.get("/",(req,res)=>{
     res.send("hello world")
