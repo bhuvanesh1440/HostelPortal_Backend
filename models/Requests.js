@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 const requestsSchema = new mongoose.Schema(
   {
-    id: String,
+    id: { type: String, required: true },
     type: String,
     status: String, // enum=[submitted, accepted,arrived,rejected]
     submitted: {

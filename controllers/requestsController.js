@@ -92,38 +92,7 @@ exports.deleteRequestById = async (req, res) => {
     }
 };
 
-// Approve a request
-exports.approveRequest = async (req, res) => {
-    const { id } = req.params;
-    const { acceptedBy } = req.body;
 
-    try {
-        const request = await Request.findById(id);
-        if (!request) {
-            return res.status(404).send('Request not found');
-        }
-
-        request.approved = true;
-        request.approval_time = new Date();
-        request.acceptedBy = acceptedBy;
-        await request.save();
-
-        const hosteler = await Hosteler.findOne({ RollNo: request.rollno });
-        if (hosteler) {
-            const phoneNumber = hosteler.FatherMobileNumber;
-            const messageTemplate = 'Dear Parent, your ward, {#var1#}, has applied for outing from {#var2#} to {#var3#}. Student went out at {#var4#}. NEC Hostels GEDNEC';
-            const variables = [hosteler.FirstName, request.startDate+' '+request.fromTime, request.endDate+' '+request.toTime, formatDate(request.approval_time).toString()];
-
-            await sendSMS(phoneNumber, OUTGOING_TEMPLATE_ID, messageTemplate, variables);
-            res.status(200).send('Request approved and parent notified');
-        } else {
-            res.status(404).send('Hosteler not found');
-        }
-    } catch (error) {
-        console.error('Error approving request:', error);
-        res.status(500).send('Server error');
-    }
-};
 
 // Get all not approved requests
 exports.getNotApprovedRequests = async (req, res) => {
@@ -222,4 +191,42 @@ exports.getPendingRequestsByHostelId = async (req, res) => {
         console.error("Error fetching pending requests:", error);
         res.status(500).json({ message: "Server error. Please try again later." });
     }
+};
+
+
+// Approve a request
+exports.approveRequest = async (req, res) => {
+    const { id } = req.params.id;
+    try {
+        // Find the request by ID
+        const updatedRequest = await Request.findByIdAndUpdate(
+            id, 
+            req.body, 
+            { new: true } 
+        );
+
+
+        // Find the hosteler related to the request
+        // const hosteler = await Hosteler.findOne({ rollNo: request.rollNo });
+        // if (hosteler) {
+        //     const phoneNumber = hosteler.parentPhoneNo;
+        //     const messageTemplate = 'Dear Parent, your ward, {#var1#}, has applied for outing from {#var2#} to {#var3#}. Student went out at {#var4#}. NEC Hostels GEDNEC';
+        //     const variables = [
+        //         hosteler.name,
+        //         `${request.fromDate.toDateString()} ${request.fromTime.toTimeString()}`,
+        //         `${request.toDate.toDateString()} ${request.toTime.toTimeString()}`,
+        //         request.accepted.time.toString(),
+        //     ];
+
+            // Send SMS notification
+            // await sendSMS(phoneNumber, 'OUTGOING_TEMPLATE_ID', messageTemplate, variables);
+            // res.status(200).json({ message: 'Request approved and parent notified' });
+        // } else {
+        //     res.status(404).json({ message: 'Hosteler not found' });
+        // }
+    } catch (error) {
+        console.error('Error approving request:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+    res.status(200).json({updates:true,message:"notified to parent"})
 };
