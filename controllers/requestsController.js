@@ -196,14 +196,17 @@ exports.getPendingRequestsByHostelId = async (req, res) => {
 
 // Approve a request
 exports.approveRequest = async (req, res) => {
-    const { id } = req.params.id;
+  
+    console.log(req.params.Id)
+    console.log(req.body)
     try {
         // Find the request by ID
         const updatedRequest = await Request.findByIdAndUpdate(
-            id, 
+            req.params.Id, 
             req.body, 
             { new: true } 
         );
+        console.log(updatedRequest)
 
 
         // Find the hosteler related to the request

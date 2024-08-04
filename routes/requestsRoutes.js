@@ -5,7 +5,7 @@ const requestsController = require('../controllers/requestsController');
 router.post('/', requestsController.createRequest);
 router.get('/', requestsController.getAllRequests);
 router.get('/pending/:hostelId', requestsController.getPendingRequestsByHostelId);
-router.post('/approve/:id', requestsController.approveRequest);
+router.post('/approve/:Id', requestsController.approveRequest);
 
 
 
