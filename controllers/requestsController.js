@@ -290,6 +290,7 @@ exports.arriveRequest = async (req,res)=>{
 // Get all arrived requests between two dates
 exports.getArrivedRequestsBetweenDates = async (req, res) => {
     try {
+        
         const { startDate, endDate } = req.body;
 
         // Ensure dates are provided and valid
@@ -309,6 +310,7 @@ exports.getArrivedRequestsBetweenDates = async (req, res) => {
 
         // Find all requests where 'arrived.time' is between startDate and endDate
         const requests = await Request.find({
+            hostelId:req.params.hostelId,
             arrived: { $ne: null }, // Ensure 'arrived' is not null
             'arrived.time': { $gte: start, $lte: end },
             
