@@ -248,3 +248,23 @@ exports.acceptedRequestsByhostelId = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
+exports.arriveRequest = async (req,res)=>{
+    
+    console.log(req.params.Id)
+    console.log(req.body)
+    try {
+        // Find the request by ID
+        const updatedRequest = await Request.findOneAndUpdate(
+            {id:req.params.Id}, 
+            req.body, 
+            { new: true } 
+        );
+        console.log(updatedRequest)
+    } catch (error) {
+        console.error('Error approving request:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+    res.status(200).json({updated:true,message:"notified to parent"})
+
+}
