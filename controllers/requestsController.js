@@ -1,7 +1,12 @@
 const Request = require('../models/Requests');
 const Hosteler = require('../models/Hostelers');
-const sendSMS = require('../utils/sms');
-const formatDate = require('../utils/formatDate');
+const sampleSMS = require('../sampleUtils/sms');
+// const formatDate = require('../sampleUtils/formatDate');
+
+const sendSMS = require('../utils/sendSMS')
+const formatDate = require('../utils/formatDate')
+// const axios = require('axios')
+
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -92,6 +97,29 @@ exports.deleteRequestById = async (req, res) => {
     }
 };
 
+exports.smapleApproveRequest = async (req,res)=>{
+    // Find the hosteler related to the request
+    const hosteler = await Hosteler.findOne({ rollNo: request.rollNo });
+    if (hosteler) {
+        const phoneNumber = hosteler.parentPhoneNo;
+        const messageTemplate = 'Dear Parent, your ward, {#var1#}, has applied for outing from {#var2#} to {#var3#}. Student went out at {#var4#}. NEC Hostels GEDNEC';
+        const variables = [
+            hosteler.name,
+            `${request.fromDate.toDateString()} ${request.fromTime.toTimeString()}`,
+            `${request.toDate.toDateString()} ${request.toTime.toTimeString()}`,
+            request.accepted.time.toString(),
+        ];
+    
+
+        // Send SMS notification
+        await sampleSMS(phoneNumber, 'OUTGOING_TEMPLATE_ID', messageTemplate, variables);
+        res.status(200).json({ message: 'Request approved and parent notified' });
+    } else {
+        res.status(404).json({ message: 'Hosteler not found' });
+    }
+    
+}
+
 
 
 // Get all not approved requests
@@ -118,7 +146,8 @@ exports.getNotReturnedRequests = async (req, res) => {
 };
 
 
-const send_return = require("../utils/send_return ")
+const send_return = require("../sampleUtils/send_return ");
+const { default: axios } = require('axios');
 // Mark request as returned
 exports.markRequestAsReturned = async (req, res) => {
     const { id } = req.params;
@@ -194,45 +223,72 @@ exports.getPendingRequestsByHostelId = async (req, res) => {
 };
 
 
+
 // Approve a request
 exports.approveRequest = async (req, res) => {
-  
-    console.log(req.params.Id)
-    console.log(req.body)
+    console.log(req.params.Id);
+    console.log(req.body);
+
     try {
         // Find the request by ID
         const updatedRequest = await Request.findOneAndUpdate(
-            {id:req.params.Id}, 
-            req.body, 
-            { new: true } 
+            { id: req.params.Id },
+            req.body,
+            { new: true }
         );
-        console.log(updatedRequest)
+        console.log(updatedRequest);
 
+        if (!updatedRequest) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
 
         // Find the hosteler related to the request
-        // const hosteler = await Hosteler.findOne({ rollNo: request.rollNo });
-        // if (hosteler) {
-        //     const phoneNumber = hosteler.parentPhoneNo;
-        //     const messageTemplate = 'Dear Parent, your ward, {#var1#}, has applied for outing from {#var2#} to {#var3#}. Student went out at {#var4#}. NEC Hostels GEDNEC';
-        //     const variables = [
-        //         hosteler.name,
-        //         `${request.fromDate.toDateString()} ${request.fromTime.toTimeString()}`,
-        //         `${request.toDate.toDateString()} ${request.toTime.toTimeString()}`,
-        //         request.accepted.time.toString(),
-        //     ];
+        const hosteler = await Hosteler.findOne({ rollNo: updatedRequest.rollNo });
+
+        if (hosteler) {
+            const phoneNumber = hosteler.parentPhoneNo;
+            // const messageTemplate = 'Dear Parent, your ward, {#var1#}, has applied for outing from {#var2#} to {#var3#}. Student went out at {#var4#}. NEC Hostels GEDNEC';
+            const messageTemplate ='ప్రియమైన తల్లిదండ్రులకు, మీ అబ్బాయి/అమ్మాయి {#var1#} తేదీ:{#var2#}, టైం:{#var3#}, నుండి తేదీ:{#var4#}, టైం:{#var5#}, వరకు హాస్టల్ నుండి ఇంటికి వెళ్లడానికి దరఖాస్తు చేసుకున్నారు. ఈ విషయం మీకు ఫోన్ ద్వారా కూడా తెలియపరిచాము. NEC హాస్టల్స్- GEDNEC'
+            let variables = [];
+            teluguName= await axios.get(`https://api.mymemory.translated.net/get?q=${hosteler.name}!&langpair=en|te`);
+
+            if (updatedRequest.type === "PERMISSION") {
+                console.log("getting permission variables");
+                variables = [
+                    teluguName.data.responseData.translatedText,
+                    formatDate.formatDate(updatedRequest.date),
+                    formatDate.formatTime(updatedRequest.fromTime),
+                    formatDate.formatDate(updatedRequest.date),
+                    formatDate.formatTime(updatedRequest.toTime),
+                ];
+                console.log(teluguName.data.responseData.translatedText,)
+            } else if (updatedRequest.type === "LEAVE") {
+                console.log("getting leave variables");
+                variables = [
+                    teluguName.data.responseData.translatedText,
+                    formatDate.formatDate(updatedRequest.fromDate),
+                    formatDate.formatTime(updatedRequest.fromDate),
+                    formatDate.formatDate(updatedRequest.toDate),
+                    formatDate.formatTime(updatedRequest.toDate),
+                ];
+            }
 
             // Send SMS notification
-            // await sendSMS(phoneNumber, 'OUTGOING_TEMPLATE_ID', messageTemplate, variables);
-            // res.status(200).json({ message: 'Request approved and parent notified' });
-        // } else {
-        //     res.status(404).json({ message: 'Hosteler not found' });
-        // }
+            await sendSMS(phoneNumber, OUTGOING_TEMPLATE_ID, messageTemplate, variables);
+
+            // Send a single response
+            return res.status(200).json({updated:true,message:"notified to parent"})
+        } else {
+            return res.status(404).json({ message: 'Hosteler not found' });
+        }
     } catch (error) {
         console.error('Error approving request:', error);
-        res.json({ message: 'Server error' });
+
+        // Send a single error response
+        return res.status(500).json({ message: 'Server error' });
     }
-    res.status(200).json({updates:true,message:"notified to parent"})
 };
+
 
 
 // Get all approved requests that have not been returned, filtered by hostelid
@@ -264,25 +320,35 @@ exports.arriveRequest = async (req,res)=>{
             { new: true } 
         );
         console.log(updatedRequest)
+        if (!updatedRequest) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
 
-        // const hosteler = await Hosteler.findOne({ rollNo: updatedRequest.rollno });
-        // if (hosteler) {
-        //     console.log('Hosteler found, sending notification');
-        //     const phoneNumber = hosteler.FatherMobileNumber;
-        //     const messageTemplate = 'Dear Parent, your ward {#var1#} has returned to the campus from outing at {#var2#}. NEC Hostels GEDNEC';
-        //     const variables = [hosteler.FirstName, formatDate(returnTime).toString()];
+        
+        const hosteler = await Hosteler.findOne({ rollNo: updatedRequest.rollNo });
+        if (hosteler) {
+            console.log('Hosteler found, sending notification');
+            const phoneNumber = hosteler.parentPhoneNo;
+            // const messageTemplate = 'Dear Parent, your ward {#var1#} has returned to the campus from outing at {#var2#}. NEC Hostels GEDNEC';
+            const messageTemplate = 'ప్రియమైన తల్లిదండ్రులకు, మీ అబ్బాయి/అమ్మాయి {#var1#} తేదీ: {#var2#}, టైం: {#var3#} కు ఔటింగ్ నుండి హాస్టల్‌కి తిరిగి వచ్చారు. NEC హాస్టల్స్ GEDNEC';
+            teluguName= await axios.get(`https://api.mymemory.translated.net/get?q=${hosteler.name}&langpair=en|te`);
+            console.log(teluguName)
+            console.log(teluguName.data.responseData.translatedText)
+            const variables = [
+                teluguName.data.responseData.translatedText,
+                formatDate.formatDate(updatedRequest.arrived.time),
+                formatDate.formatTime(updatedRequest.arrived.time)];
 
-        //     await send_return(phoneNumber, messageTemplate, variables);
-        //     res.status(200).send('Request marked as returned and parent notified');
-        // } else {
-        //     console.log('Hosteler not found');
-        //     res.status(404).send('Hosteler not found');
-        // }
+                await sendSMS(phoneNumber, RETURN_TEMPLATE_ID, messageTemplate, variables);
+                return res.status(200).json({updated:true,message:"notified to parent"})
+            } else {
+            console.log('Hosteler not found');
+            return res.status(404).send('Hosteler not found');
+        }
     } catch (error) {
         console.error('Error approving request:', error);
-        res.json({ message: 'Server error' });
+        return res.json({ message: 'Server error' });
     }
-    res.status(200).json({updated:true,message:"notified to parent"})
 
 }
 

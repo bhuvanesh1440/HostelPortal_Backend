@@ -27,16 +27,16 @@ const requestsSchema = new mongoose.Schema(
     name: String,
     rollNo: String,
     hostelId: String,
-     // 'permission' or 'leave'
     phoneNo: String,
     parentPhoneNo: String,
     reason:String,
     isActive:Boolean,
 
+    // permission
     date:Date,
     fromTime:Date,
     toTime:Date,
-
+    // leave
     fromDate:Date,
     toDate:Date,
 
