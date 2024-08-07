@@ -83,7 +83,7 @@ exports.login = async (req, res) => {
         if (!isMatch) return res.status(401).json({ message: 'Invalid Employee ID or Password' });
 
         const token = jwt.sign({ id: incharge._id, eid: incharge.eid }, 'your_jwt_secret', { expiresIn: '1h' });
-        res.status(200).json({ token });
+        res.status(200).json({success:true, token });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
