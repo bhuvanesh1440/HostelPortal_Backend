@@ -70,6 +70,13 @@ exports.updateHostelerByRollNo = async (req, res) => {
     try {
         console.log("updating student.....")
         console.log(req.body)
+        data=req.body
+        update={
+            lastrequesst:data.lastRequesst,
+            requestCount:data.requestCount,
+            currentStatus:data.currentStatus
+        }
+
         console.log(req.params.RollNo)
         const hosteler = await Hosteler.findOneAndUpdate({ rollNo: req.params.RollNo }, req.body, { new: true });
         if (!hosteler) {
