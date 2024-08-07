@@ -30,6 +30,29 @@ exports.getAllIncharges = async (req, res) => {
     }
 };
 
+exports.getInchargesByHostelId = async (req, res) => {
+    try {
+        // Extract hostelId from request parameters
+        const { hostelId } = req.params;
+
+        // Validate hostelId
+        if (!hostelId) {
+            return res.status(400).json({ message: 'Hostel ID is required' });
+        }
+
+        const incharges = await Incharge.find({ hostelId });
+
+        if (incharges.length === 0) {
+            return res.status(404).json({ message: 'No incharges found for the given hostel ID' });
+        }
+
+        res.status(200).json({ incharges });
+    } catch (error) {
+        console.error('Error fetching incharges:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // Get an incharge by eid
 exports.getInchargeByEid = async (req, res) => {
     try {
