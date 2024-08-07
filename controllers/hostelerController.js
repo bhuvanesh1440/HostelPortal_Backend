@@ -68,23 +68,29 @@ exports.getFilteredHostlers = async (req, res) => {
 // Update a hosteler by RollNo
 exports.updateHostelerByRollNo = async (req, res) => {
     try {
-        console.log("updating student.....")
-        console.log(req.body)
-        data=req.body
-        update={
-            lastrequesst:data.lastRequesst,
-            requestCount:data.requestCount,
-            currentStatus:data.currentStatus
+        console.log("Updating student...");
+        console.log(req.body);
+
+        // Get the update fields from req.body, excluding null values
+        const updateFields = {};
+        for (const [key, value] of Object.entries(req.body)) {
+            if (value !== null && value !== undefined) {
+                updateFields[key] = value;
+            }
         }
 
-        console.log(req.params.RollNo)
-        const hosteler = await Hosteler.findOneAndUpdate({ rollNo: req.params.RollNo }, req.body, { new: true });
+        console.log("Fields to update:", updateFields);
+
+        // Perform the update operation
+        const hosteler = await Hosteler.findOneAndUpdate({ rollNo: req.params.RollNo }, updateFields, { new: true });
+
         if (!hosteler) {
             return res.status(404).json({ message: 'Hosteler not found' });
         }
-        res.status(200).json({updated:true});
+
+        res.status(200).json({ updated: true, data: hosteler });
     } catch (error) {
-        res.json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
 };
 // Delete a hosteler by RollNo
