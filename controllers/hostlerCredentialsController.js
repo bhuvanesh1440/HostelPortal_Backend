@@ -1,180 +1,105 @@
-// // controllers/hostlerCredentialsController.js
-// const HostlerCredentials = require('../models/HostlerCredentials');
-// const mongoose = require('mongoose');
-// // const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const HostlerCredentials = require('../models/HostlerCredentials');
 
-// // Password validation function
-// const validatePassword = (password) => {
-//     const minLength = 8;
-//     const hasUpperCase = /[A-Z]/.test(password);
-//     const hasLowerCase = /[a-z]/.test(password);
-//     const hasNumeric = /[0-9]/.test(password);
-//     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+// create crediantials
+exports.createHostler = async (req, res) => {
+    try {
+        const { rollNo, password } = req.body;
+        console.log(rollNo,password)
 
-//     if (password.length < minLength) {
-//         return { isValid: false, message: `Password must be at least ${minLength} characters long.` };
-//     }
-//     if (!hasUpperCase) {
-//         return { isValid: false, message: 'Password must contain at least one uppercase letter.' };
-//     }
-//     if (!hasLowerCase) {
-//         return { isValid: false, message: 'Password must contain at least one lowercase letter.' };
-//     }
-//     if (!hasNumeric) {
-//         return { isValid: false, message: 'Password must contain at least one numeric digit.' };
-//     }
-//     if (!hasSpecialChar) {
-//         return { isValid: false, message: 'Password must contain at least one special character.' };
-//     }
+        if (!rollNo || !password) {
+            return res.status(400).json({ message: 'Roll number and password are required' });
+        }
 
-//     return { isValid: true };
-// };
+        // Check if the roll number already exists
+        const existingHostler = await HostlerCredentials.findOne({ rollNo });
+        if (existingHostler) {
+            return res.status(400).json({ message: 'Roll number already exists' });
+        }
 
-// // Create hostler credentials
-// // exports.createHostlerCredentials = async (req, res) => {
-// //     try {
-// //         const { RollNumber, password } = req.body;
+        // Hash the password before saving
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-// //         // Check if hosteler exists
-// //         const existingHosteler = await mongoose.model('Hosteler').findOne({ RollNo: RollNumber });
-// //         if (!existingHosteler) {
-// //             return res.status(404).json({ message: `Hosteler with RollNumber ${RollNumber} not found.` });
-// //         }
+        const hostler = new HostlerCredentials({
+            rollNo,
+            password: hashedPassword
+        });
+        console.log(hostler)
 
-// //         // Check if credentials already exist
-// //         const existingCredentials = await HostlerCredentials.findOne({ RollNumber });
-// //         if (existingCredentials) {
-// //             return res.status(409).json({ message: `Credentials for RollNumber ${RollNumber} already exist.` });
-// //         }
+        await hostler.save();
+        res.status(201).json({ message: 'Hostler created successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-// //         // Validate password
-// //         const { isValid, message } = validatePassword(password);
-// //         if (!isValid) {
-// //             return res.status(400).json({ message });
-// //         }
 
-// //         // Hash the password
-// //         const salt = await bcrypt.genSalt(10);
-// //         const hashedPassword = await bcrypt.hash(password, salt);
+// Read all hostlers
+exports.getAllHostlers = async (req, res) => {
+    try {
+        const hostlers = await HostlerCredentials.find();
+        res.status(200).json(hostlers);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-// //         const newCredentials = new HostlerCredentials({
-// //             RollNumber,
-// //             password: hashedPassword,
-// //         });
+// Update a hostler's password by rollNo
+exports.updateHostlerPassword = async (req, res) => {
+    try {
+        const { rollNo } = req.params;
+        const { newPassword } = req.body;
 
-// //         await newCredentials.save();
-// //         res.status(201).json(newCredentials);
-// //         console.log("User created...");
-// //     } catch (error) {
-// //         res.status(400).json({ message: error.message });
-// //     }
-// // };
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const hostler = await HostlerCredentials.findOneAndUpdate(
+            { rollNo },
+            { password: hashedPassword },
+            { new: true }
+        );
 
-// // Login controller
-// // exports.login = async (req, res) => {
-// //     console.log(req.body);
-// //     const { RollNumber, password } = req.body;
+        if (!hostler) return res.status(404).json({ message: 'Hostler not found' });
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-// //     try {
-// //         // Check if credentials exist
-// //         const credentials = await HostlerCredentials.findOne({ RollNumber });
-// //         console.log(credentials);
+// Delete a hostler by rollNo
+exports.deleteHostler = async (req, res) => {
+    try {
+        const { rollNo } = req.params;
+        const hostler = await HostlerCredentials.findOneAndDelete({ rollNo });
 
-// //         if (!credentials) {
-// //             console.log("fail");
-// //             return res.status(401).json({ success: false, message: "Invalid credentials" });
-// //         }
+        if (!hostler) return res.status(404).json({ message: 'Hostler not found' });
+        res.status(200).json({ message: 'Hostler deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-// //         // Validate password
-// //         const isMatch = await bcrypt.compare(password, credentials.password);
-// //         if (!isMatch) {
-// //             console.log("fail");
-// //             return res.status(401).json({ success: false, message: "Invalid credentials" });
-// //         }
+// Hostler login
+exports.login = async (req, res) => {
+    try {
+        const { rollNo, password } = req.body;
+        const hostler = await HostlerCredentials.findOne({ rollNo });
 
-// //         // If username and password are correct, return success
-// //         console.log("success");
-// //         res.status(200).json({ success: true, message: "Login successful" });
+        if (!hostler) return res.json({ message: 'Invalid Roll Number or Password' });
 
-// //     } catch (error) {
-// //         console.error("Error logging in:", error);
-// //         res.status(500).json({ success: false, message: "Server error. Please try again later." });
-// //     }
-// // };
+        const isMatch = await bcrypt.compare(password, hostler.password);
+        if (!isMatch) return res.json({ message: 'Invalid Roll Number or Password' });
 
-// // Get all hostler credentials
-// exports.getAllHostlerCredentials = async (req, res) => {
-//     try {
-//         const credentials = await HostlerCredentials.find();
-//         res.status(200).json(credentials);
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// };
+        const token = jwt.sign({ id: hostler._id, rollNo: hostler.rollNo }, 'your_jwt_secret', { expiresIn: '1m' });
+        res.status(200).json({success:true, token });
+    } catch (error) {
+        res.json({ message: error.message });
+    }
+};
 
-// // Get hostler credentials by RollNumber
-// exports.getHostlerCredentialsByRollNumber = async (req, res) => {
-//     try {
-//         const credentials = await HostlerCredentials.findOne({ RollNumber: req.params.RollNumber });
-//         if (!credentials) {
-//             return res.status(404).json({ message: `Credentials for RollNumber ${req.params.RollNumber} not found.` });
-//         }
-//         res.status(200).json(credentials);
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// };
-
-// // Update hostler credentials by RollNumber
-// // exports.updateHostlerCredentialsByRollNumber = async (req, res) => {
-// //     try {
-// //         const { RollNumber } = req.params;
-// //         const update = req.body;
-
-// //         // Validate if hosteler exists
-// //         const existingHosteler = await mongoose.model('Hosteler').findOne({ RollNo: RollNumber });
-// //         if (!existingHosteler) {
-// //             return res.status(404).json({ message: `Hosteler with RollNumber ${RollNumber} not found.` });
-// //         }
-
-// //         // Check if password is being updated and validate and hash it
-// //         if (update.password) {
-// //             const { isValid, message } = validatePassword(update.password);
-// //             if (!isValid) {
-// //                 return res.status(400).json({ message });
-// //             }
-
-// //             const salt = await bcrypt.genSalt(10);
-// //             update.password = await bcrypt.hash(update.password, salt);
-// //         }
-
-// //         const updatedCredentials = await HostlerCredentials.findOneAndUpdate(
-// //             { RollNumber },
-// //             update,
-// //             { new: true }
-// //         );
-
-// //         res.status(200).json(updatedCredentials);
-// //     } catch (error) {
-// //         res.status(400).json({ message: error.message });
-// //     }
-// // };
-
-// // Delete hostler credentials by RollNumber
-// exports.deleteHostlerCredentialsByRollNumber = async (req, res) => {
-//     try {
-//         const { RollNumber } = req.params;
-
-//         // Validate if hosteler exists
-//         const existingHosteler = await mongoose.model('Hosteler').findOne({ RollNo: RollNumber });
-//         if (!existingHosteler) {
-//             return res.status(404).json({ message: `Hosteler with RollNumber ${RollNumber} not found.` });
-//         }
-
-//         await HostlerCredentials.findOneAndDelete({ RollNumber });
-
-//         res.status(200).json({ message: `Credentials for RollNumber ${RollNumber} deleted successfully.` });
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// };
+// Forgot password (send reset link or token)
+exports.forgotPassword = async (req, res) => {
+    // Placeholder for actual implementation
+    // Normally, you'd send a reset link to the hostler's email
+    res.status(200).json({ message: 'Password reset link sent (this is a placeholder)' });
+};

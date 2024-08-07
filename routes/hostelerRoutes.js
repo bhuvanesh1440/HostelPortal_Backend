@@ -9,5 +9,9 @@ router.get('/:RollNo', hostelerController.getHostelerByRollNo);
 router.post('/getAll', hostelerController.getFilteredHostlers);
 router.put('/update/:RollNo', hostelerController.updateHostelerByRollNo);
 router.delete('/:RollNo', hostelerController.deleteHostelerByRollNo);
+router.get('/get/counts', hostelerController.getHostelerCounts);
+router.get('/get/counts/:hostelId', hostelerController.getHostelerCountsByHostelId);
+
+
 
 module.exports = router;

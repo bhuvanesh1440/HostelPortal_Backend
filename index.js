@@ -5,11 +5,16 @@ const connectDB = require('./config/db');
 
 // Import routes
 const uploadRoutes = require('./routes/uploadRoutes');
+
 const adminRoutes = require('./routes/adminRoutes');
+const adminLoginRoutes = require('./routes/adminLoginRoutes')
+
 const hostelerRoutes = require('./routes/hostelerRoutes');
-// const hostlerCredentialsRoutes = require('./routes/hostlerCredentialsRoutes'); 
+const hostlerCredentialsRoutes = require('./routes/hostlerCredentialsRoutes'); 
 const requestsRoutes = require('./routes/requestsRoutes');
+
 const inchargeRoutes = require('./routes/inchargeRoutes')
+const InchargeLoginRoutes = require('./routes/inchargeLoginRoutes')
 
 const { default: mongoose } = require('mongoose');
 
@@ -26,13 +31,24 @@ app.use(bodyParser.urlencoded({extended:false}))
 
 // Routes
 
-app.use('/ipload', uploadRoutes);
+app.use('/upload', uploadRoutes);
+// admins
 app.use('/admins', adminRoutes);
+app.use('/admin-auth',adminLoginRoutes)
+// students
 app.use('/student', hostelerRoutes);
-// app.use('/hostler-login', hostlerCredentialsRoutes); 
+app.use('/student-auth', hostlerCredentialsRoutes); 
 app.use('/requests', requestsRoutes);
-app.use('/incharge', inchargeRoutes); 
 
+// incharges
+app.use('/incharge', inchargeRoutes); 
+app.use('/incharge-auth',InchargeLoginRoutes)
+
+// Error handling middleware 
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 app.get("/",(req,res)=>{
     res.send("hello world")
 })

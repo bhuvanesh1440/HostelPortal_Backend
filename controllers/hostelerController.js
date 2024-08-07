@@ -12,7 +12,6 @@ exports.createHosteler = async (req, res) => {
     }
 };
 
-
 // Get all hostelers
 exports.getAllHostelers = async (req, res) => {
     
@@ -69,6 +68,9 @@ exports.getFilteredHostlers = async (req, res) => {
 // Update a hosteler by RollNo
 exports.updateHostelerByRollNo = async (req, res) => {
     try {
+        console.log("updating student.....")
+        console.log(req.body)
+        console.log(req.params.RollNo)
         const hosteler = await Hosteler.findOneAndUpdate({ rollNo: req.params.RollNo }, req.body, { new: true });
         if (!hosteler) {
             return res.status(404).json({ message: 'Hosteler not found' });
@@ -90,3 +92,93 @@ exports.deleteHostelerByRollNo = async (req, res) => {
         res.json({ message: error.message });
     }
 };
+
+
+// Get total count of hostlers and count based on currentStatus
+exports.getHostelerCounts = async (req, res) => {
+    try {
+        console.log("calling the counts function")
+        // Total count of hostlers
+        const totalHostlers = await Hosteler.countDocuments();
+
+        // Count based on currentStatus
+        const statusCounts = await Hosteler.aggregate([
+            {
+                $group: {
+                    _id: "$currentStatus",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Convert the aggregation result into a more readable format
+        const counts = {
+            total: totalHostlers,
+            hostel: 0,
+            permission: 0,
+            leave: 0
+        };
+
+        statusCounts.forEach(status => {
+            if (status._id === "HOSTEL") counts.hostel = status.count;
+            else if (status._id === "PERMISSION") counts.permission = status.count;
+            else if (status._id === "LEAVE") counts.leave = status.count;
+        });
+
+        res.status(200).json(counts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get hostlers by hostelId
+exports.getHostelersByHostelId = async (req, res) => {
+    try {
+        const { hostelId } = req.params;
+        // Find hostlers by hostelId
+        const hostelers = await Hosteler.find({ hostelId });
+        if (!hostelers.length) {
+            return res.status(404).json({ message: 'No hostlers found for this hostelId' });
+        }
+        res.status(200).json(hostelers);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+// Get count based on hostelId and currentStatus
+exports.getHostelerCountsByHostelId = async (req, res) => {
+    try {
+        const { hostelId } = req.params;
+
+        // Total count of hostlers for the given hostelId
+        const totalHostlers = await Hosteler.countDocuments({ hostelId });
+        // Count based on currentStatus for the given hostelId
+        const statusCounts = await Hosteler.aggregate([
+            { $match: { hostelId } }, // Filter by hostelId
+            {
+                $group: {
+                    _id: "$currentStatus",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        // Convert the aggregation result into a more readable format
+        const counts = {
+            total: totalHostlers,
+            hostel: 0,
+            permission: 0,
+            leave: 0
+        };
+        statusCounts.forEach(status => {
+            if (status._id === "HOSTEL") counts.hostel = status.count;
+            else if (status._id === "PERMISSION") counts.permission = status.count;
+            else if (status._id === "LEAVE") counts.leave = status.count;
+        });
+        res.status(200).json(counts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

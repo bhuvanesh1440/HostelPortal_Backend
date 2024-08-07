@@ -10,7 +10,7 @@ const hostelersSchema = new mongoose.Schema({
    branch:String,
    gender:String,
    // dob: Date,
-   dob:{ type: Date, default:new Date("02-07-2004")},
+   dob:{ type: Date},
    phoneNo: { type: String, required: true },
    email: String,
    parentName: String,
