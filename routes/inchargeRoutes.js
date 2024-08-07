@@ -4,7 +4,7 @@ const inchargeController = require('../controllers/inchargeController');
 
 // CRUD operations for incharges
 router.post('/create', inchargeController.createIncharge);
-router.get('/', inchargeController.getAllIncharges);
+router.get('/getAll', inchargeController.getAllIncharges);
 router.get('/getIncharges/:hostelId',inchargeController.getInchargesByHostelId)
 router.get('/:eid', inchargeController.getInchargeByEid);
 router.put('/:eid', inchargeController.updateInchargeByEid);
