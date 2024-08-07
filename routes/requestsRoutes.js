@@ -10,6 +10,9 @@ router.get('/activeRequest/:hostelId',requestsController.acceptedRequestsByhoste
 router.post('/arrive/:Id', requestsController.arriveRequest);
 router.post('/getArrivedRequests/:hostelId',requestsController.getArrivedRequestsBetweenDates)
 
+router.get('/getTodayrequests',requestsController.getTodayRequestCounts)
+router.get('/getTodayrequests/:hostelId',requestsController.getTodayRequestCountsByHostelId)
+
 
 
 

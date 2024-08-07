@@ -388,3 +388,103 @@ exports.getArrivedRequestsBetweenDates = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+const moment = require('moment'); // For date manipulation
+
+exports.getTodayRequestCounts = async (req, res) => {
+    try {
+        // Get today's date in YYYY-MM-DD format
+        const today = moment().startOf('day').toDate();
+        const endOfDay = moment().endOf('day').toDate();
+
+        // Count total requests for today
+        const totalRequests = await Request.countDocuments({
+            date: { $gte: today, $lte: endOfDay }
+        });
+
+        // Count requests based on type for today
+        const typeCounts = await Request.aggregate([
+            {
+                $match: {
+                    date: { $gte: today, $lte: endOfDay }
+                }
+            },
+            {
+                $group: {
+                    _id: "$type",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Convert the aggregation result into a more readable format
+        const counts = {
+            total: totalRequests,
+            permission: 0,
+            leave: 0
+        };
+
+        typeCounts.forEach(type => {
+            if (type._id === "PERMISSION") counts.permission = type.count;
+            else if (type._id === "LEAVE") counts.leave = type.count;
+        });
+
+        res.status(200).json(counts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+exports.getTodayRequestCountsByHostelId = async (req, res) => {
+    try {
+        const { hostelId } = req.params; // Get hostelId from request parameters
+
+        if (!hostelId) {
+            return res.status(400).json({ message: 'Hostel ID is required' });
+        }
+
+        // Get today's date in YYYY-MM-DD format
+        const today = moment().startOf('day').toDate();
+        const endOfDay = moment().endOf('day').toDate();
+
+        // Count total requests for today based on hostelId
+        const totalRequests = await Request.countDocuments({
+            hostelId,
+            date: { $gte: today, $lte: endOfDay }
+        });
+
+        // Count requests based on type for today and hostelId
+        const typeCounts = await Request.aggregate([
+            {
+                $match: {
+                    hostelId,
+                    date: { $gte: today, $lte: endOfDay }
+                }
+            },
+            {
+                $group: {
+                    _id: "$type",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Convert the aggregation result into a more readable format
+        const counts = {
+            total: totalRequests,
+            permission: 0,
+            leave: 0
+        };
+
+        typeCounts.forEach(type => {
+            if (type._id === "PERMISSION") counts.permission = type.count;
+            else if (type._id === "LEAVE") counts.leave = type.count;
+        });
+
+        res.status(200).json(counts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
